@@ -1,58 +1,83 @@
 import pygame
 import sys
 
-# Initialize pygame
+# Initialize Pygame
 pygame.init()
 
 # Create game window
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Super Mario")
 
-# Background color
-b = (0, 150, 255)
+# Colors
+background_color = (0, 150, 255)
+ground_color = (255, 0, 0)
+enemy_color = (0, 0, 0)
 
-# Load mario image
+# Load Mario image
 mario_img = pygame.image.load("assets/mario.png")
 mario_img = pygame.transform.scale(mario_img, (200, 200))
-rect = mario_img.get_rect()
-rect.topleft = (100, 400)
+mario_rect = mario_img.get_rect()
+mario_rect.topleft = (100, 400)
 
-# Earth
+# Ground setup
 ground = pygame.Rect(0, 550, 800, 50)
 
-# Speed mario
+# Movement and physics
 speed = 5
+gravity = 1
+mario_y_speed = 0
+is_jumping = False
+jump_strength = -15
 
-# Enemy
+# Enemy setup
 enemy = pygame.Rect(300, 500, 50, 50)
 enemy_speed = 1
 
-# Main game loop
-while True:
-    for even in pygame.event.get():
-        if even.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+# Game loop
+clock = pygame.time.Clock()
+running = True
+while running:
+    clock.tick(60)  # Limit to 60 FPS
 
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Key input
     keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and mario_rect.left > 0:
+        mario_rect.x -= speed
+    if keys[pygame.K_RIGHT] and mario_rect.right < 800:
+        mario_rect.x += speed
+    if keys[pygame.K_SPACE] and not is_jumping:
+        mario_y_speed = jump_strength
+        is_jumping = True
 
-    # Mario movement
-    if keys[pygame.K_LEFT] and rect.left > 0:
-        rect.x -= speed
-    if keys[pygame.K_RIGHT] and rect.right < 800:
-        rect.x += speed
+    # Apply gravity
+    mario_y_speed += gravity
+    mario_rect.y += mario_y_speed
+
+    # Ground collision
+    if mario_rect.bottom >= ground.top:
+        mario_rect.bottom = ground.top
+        mario_y_speed = 0
+        is_jumping = False
 
     # Enemy movement
     enemy.x += enemy_speed
     if enemy.right >= 800 or enemy.left <= 0:
         enemy_speed = -enemy_speed
 
-    # Drawing everything on the screen
-    screen.fill(b)
-    pygame.draw.rect(screen, (255, 0, 0), ground)
-    pygame.draw.rect(screen, (0, 0, 0), enemy)
-    screen.blit(mario_img, rect)
+    # Drawing
+    screen.fill(background_color)
+    pygame.draw.rect(screen, ground_color, ground)  # Draw ground
+    pygame.draw.rect(screen, enemy_color, enemy)    # Draw enemy
+    screen.blit(mario_img, mario_rect)              # Draw Mario
 
-    # Update the display
     pygame.display.update()
+
+# Quit game
+pygame.quit()
+sys.exit()
 

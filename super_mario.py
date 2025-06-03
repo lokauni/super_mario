@@ -16,22 +16,28 @@ enemy_color = (0, 0, 0)
 
 # Load Mario image
 mario_img = pygame.image.load("assets/mario.png")
-mario_img = pygame.transform.scale(mario_img, (160, 160))
+mario_img = pygame.transform.scale(mario_img, (120, 140))
 mario_rect = mario_img.get_rect()
 mario_rect.topleft = (350, 380)
 
 # Ground setup
 ground = pygame.Rect(0, 550, 800, 50)
 
-#Platform setup
-platform = pygame.Rect(300, 400, 200, 20)
+#Platforms
+platforms = [
+        pygame.Rect(200, 450, 150, 20),
+        pygame.Rect(400, 400, 150, 20),
+        pygame.Rect(250, 350, 150, 20),
+        pygame.Rect(450, 300, 150, 20)
+
+]
 
 # Movement and physics
 speed = 5
 gravity = 1
 mario_y_speed = 0
 is_jumping = False
-jump_strength = -25
+jump_strength = -35
 
 # Enemy setup
 enemy = pygame.Rect(300, 500, 50, 50)
@@ -68,19 +74,25 @@ while running:
     mario_y_speed += gravity
     mario_rect.y += mario_y_speed
 
+    #Prevent Mario from going above the screen
+    if mario_rect.top < 0:
+        mario_rect.top = 0
+        mario_y_speed = 0
 
+    
     #Platform collision
-    if mario_rect.colliderect(platform):
-        if mario_y_speed > 0 and mario_rect.bottom - mario_y_speed <= platform.top:
-            mario_rect.bottom = platform.top
-            mario_y_speed = 0
-            is_jumping = False
+    on_platform = False
+    for platform in platforms:
+        if mario_rect.colliderect(platform):
+            if mario_y_speed > 0 and mario_rect.bottom - mario_y_speed <= platform.top:
+                mario_rect.bottom = platform.top
+                mario_y_speed = 0
+                is_jumping = False
+                on_platform = True
+                break
             
-
-
-
     # Ground collision
-    if mario_rect.bottom >= ground.top:
+    if not on_platform and mario_rect.bottom >= ground.top:
         mario_rect.bottom = ground.top
         mario_y_speed = 0
         is_jumping = False
@@ -94,9 +106,10 @@ while running:
     # Drawing
     screen.fill(background_color)
     pygame.draw.rect(screen, ground_color, ground)
-    pygame.draw.rect(screen, platform_color, platform)
+    for platform in platforms:
+        pygame.draw.rect(screen, platform_color, platform)
     pygame.draw.rect(screen, enemy_color, enemy)    
-    screen.blit(mario_img, mario_rect)              
+    screen.blit(mario_img,(mario_rect.x, mario_rect.y + 10))              
 
     pygame.display.update()
 

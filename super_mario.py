@@ -21,6 +21,10 @@ mario_img = pygame.transform.scale(mario_img, (120, 140))
 mario_rect = mario_img.get_rect()
 mario_rect.topleft = (100, 380)
 
+#Load coin image
+coin_img = pygame.image.load("assets/coin.png")
+coin_img = pygame.transform.scale(coin_img, (45, 45))
+
 # Ground setup
 ground = pygame.Rect(0, 550, 800, 50)
 
@@ -30,6 +34,14 @@ platforms = [
     pygame.Rect(400, 400, 150, 20),
     pygame.Rect(250, 350, 150, 20),
     pygame.Rect(450, 300, 150, 20)
+]
+
+# Coins setup (centered on some platforms)
+coins = [
+    pygame.Rect(260, 420, 20, 20),
+    pygame.Rect(460, 370, 20, 20),
+    pygame.Rect(300, 320, 20, 20),
+    pygame.Rect(500, 270, 20, 20)
 ]
 
 # Movement and physics
@@ -106,16 +118,33 @@ while running:
         game_over_text = font.render("GAME OVER", True, text_color)
         screen.blit(game_over_text, (250, 250))
         pygame.display.update()
-        pygame.time.delay(2000)  # Wait 2 seconds
+        pygame.time.delay(2000)
         running = False
+
+    # Coin collection
+    collected_coins = []
+    if on_platform:
+        for coin in coins:
+            if mario_rect.colliderect(coin):
+                collected_coins.append(coin)
+
+    for coin in collected_coins:
+        coins.remove(coin)
 
     # Drawing
     screen.fill(background_color)
     pygame.draw.rect(screen, ground_color, ground)
+
     for platform in platforms:
-        pygame.draw.rect(screen, platform_color, platform)
+       pygame.draw.rect(screen, platform_color, platform)
+
     pygame.draw.rect(screen, enemy_color, enemy)
     screen.blit(mario_img, (mario_rect.x, mario_rect.y + 10))
+
+    # Draw coins
+    for coin in coins:
+        screen.blit(coin_img, (coin.x, coin.y))
+
     pygame.display.update()
 
 # Quit game

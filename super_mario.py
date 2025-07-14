@@ -9,7 +9,14 @@ screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Super Mario")
 
 # Colors
-text_color = (255, 255, 255)      # White (Text)
+text_color = (255, 255, 255)  # White (Text)
+
+# Score and font
+score = 0
+font = pygame.font.SysFont(None, 40)
+
+# Timer setup (added before game loop)
+timer = 60 * 60
 
 # Load Mario image
 mario_img = pygame.image.load("assets/mario.png")
@@ -25,11 +32,11 @@ coin_img = pygame.transform.scale(coin_img, (70, 70))
 brick_img = pygame.image.load("assets/brick.png")
 brick_img = pygame.transform.scale(brick_img, (190, 50))
 
-#Load enemy image
+# Load enemy image
 enemy_img = pygame.image.load("assets/enemy.webp")
 enemy_img = pygame.transform.scale(enemy_img, (80, 80))
 
-#Load background image
+# Load background image
 background_img = pygame.image.load("assets/background.jpg")
 background_img = pygame.transform.scale(background_img, (800, 600))
 
@@ -122,21 +129,32 @@ while running:
 
     # Enemy collision
     if mario_rect.colliderect(enemy):
-        font = pygame.font.SysFont(None, 100)
-        game_over_text = font.render("GAME OVER", True, text_color)
+        font_game_over = pygame.font.SysFont(None, 100)
+        game_over_text = font_game_over.render("GAME OVER", True, text_color)
         screen.blit(game_over_text, (250, 250))
         pygame.display.update()
         pygame.time.delay(2000)
         running = False
 
-    # Coin collection
+    # Coin collection and adding score
     collected_coins = []
-    if on_platform:
+    if on_platform or mario_rect.bottom == ground.top:
         for coin in coins:
             if mario_rect.colliderect(coin):
                 collected_coins.append(coin)
+                score += 10
     for coin in collected_coins:
         coins.remove(coin)
+
+    # Timer update (added inside game loop, before drawing)
+    timer -= 1
+    if timer <= 0:
+        font_game_over = pygame.font.SysFont(None, 100)
+        game_over_text = font_game_over.render("TIME UP!", True, text_color)
+        screen.blit(game_over_text, (250, 250))
+        pygame.display.update()
+        pygame.time.delay(2000)
+        running = False
 
     # Drawing
     screen.blit(background_img, (0, 0))
@@ -154,6 +172,15 @@ while running:
     # Draw coins
     for coin in coins:
         screen.blit(coin_img, (coin.x, coin.y))
+
+    # Draw score on screen
+    score_text = font.render(f"Score: {score}", True, text_color)
+    screen.blit(score_text, (10, 10))
+
+    # Draw timer on screen
+    seconds_left = timer // 60
+    timer_text = font.render(f"Time: {seconds_left}", True, text_color)
+    screen.blit(timer_text, (650, 10))
 
     pygame.display.update()
 
